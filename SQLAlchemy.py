@@ -70,27 +70,6 @@ session = Session()
 
 create_tables(engine)
 
-# add
-
-# pub1 = Publisher(id=1, name='O\u2019Reilly')
-# pub2 = Publisher(id=2, name='Pearson')
-# pub3 = Publisher(id=3, name='Microsoft Press')
-# pub4 = Publisher(id=4, name='No starch press')
-#
-# session.add_all([pub1, pub2, pub3, pub4])
-# session.commit()
-#
-# bk1 = Book(id=5, title='Modern Operating Systems', id_publisher=2)
-# bk2 = Book(id=1, title='Modern Operating', id_publisher=1)
-# sh1 = Shop(id=1, name='Labirint')
-# st1 = Stock(id=1, id_shop=1, id_book=5, count=10)
-# st2 = Stock(id=2, id_shop=1, id_book=1, count=5)
-# sal1 = Sale(id=1, price=16, data_sale='2018-10-25T09:45:24.552Z', count=20, id_stock=1)
-# sal2 = Sale(id=2, price=17, data_sale='2018-10-26T09:45:24.552Z', count=20, id_stock=2)
-#
-# session.add_all([bk1, bk2, sh1, st1, st2, sal1, sal2])
-# session.commit()
-
 with open('fixtures/tests_data.json', 'r') as fd:
     data = json.load(fd)
 
