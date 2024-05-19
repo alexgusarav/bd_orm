@@ -41,9 +41,6 @@ class Stock(Base):
     book = relationship(Book, backref="id_book")
     shop = relationship(Shop, backref="id_shop")
 
-    def __str__(self):
-        return f'{self.id_book, self.id_shop}'
-
 
 class Sale(Base):
     __tablename__ = "sale"
@@ -100,11 +97,13 @@ max_shop = max(len(sh.name) for sh in q1.all())
 max_price = max(len(str(sal.price)) for sal in q.all())
 
 for s in q3.all():
-    for sh in q1.all():
-        for sal in q.all():
-            print(f"{s.title}{(max_name - len(s.title)) * ' '} | "
-                  f"{sh.name}{(max_shop - len(sh.name)) * ' '} | "
-                  f"{sal.price}{(max_price - len(str(sal.price))) * ' '} | "
-                  f"{str(sal.date_sale)[:10]}")
+    for st in q2.all():
+        for sh in q1.all():
+            for sal in q.all():
+                if sal.id_stock == st.id and st.id_shop == sh.id and st.id_book == s.id:
+                    print(f"{s.title}{(max_name - len(s.title)) * ' '} | "
+                          f"{sh.name}{(max_shop - len(sh.name)) * ' '} | "
+                          f"{sal.price}{(max_price - len(str(sal.price))) * ' '} | "
+                          f"{str(sal.date_sale)[:10]}")
 
 session.close()
