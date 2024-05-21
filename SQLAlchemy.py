@@ -59,51 +59,46 @@ def create_tables(engine):
     Base.metadata.create_all(engine)
 
 
-DSN = "postgresql://postgres:12345@localhost:5432/neo_bd_02"
-engine = sqlalchemy.create_engine(DSN)
+def load_json():
+    with open('fixtures/tests_data.json', 'r') as fd:
+        data = json.load(fd)
 
-Session = sessionmaker(bind=engine)
-session = Session()
+    for record in data:
+        model = {
+            'publisher': Publisher,
+            'shop': Shop,
+            'book': Book,
+            'stock': Stock,
+            'sale': Sale,
+        }[record.get('model')]
+        session.add(model(id=record.get('pk'), **record.get('fields')))
+    session.commit()
 
-create_tables(engine)
 
-with open('fixtures/tests_data.json', 'r') as fd:
-    data = json.load(fd)
+def getshops(publ):
+    quer = session.query(
+        Book.title, Shop.name, Sale.price, Sale.date_sale
+        ).select_from(Shop).join(
+        Stock, Stock.id_shop == Shop.id).join(
+        Book, Book.id == Stock.id_book).join(
+        Publisher, Publisher.id == Book.id_publisher).join(
+        Sale, Stock.id == Sale.id_stock
+        )
+    if publ.isdigit():
+        quer = quer.filter(Publisher.id == int(publ)).all()
+    else:
+        quer = quer.filter(Publisher.name == publ).all()
+    for book, shop, price, data in quer:
+        print(f"{book: <40} | {shop: <10} | {price: <8} | {data.strftime('%d-%m-%Y')}")
 
-for record in data:
-    model = {
-        'publisher': Publisher,
-        'shop': Shop,
-        'book': Book,
-        'stock': Stock,
-        'sale': Sale,
-    }[record.get('model')]
-    session.add(model(id=record.get('pk'), **record.get('fields')))
-session.commit()
 
-# find_name = input()
-find_name = 'O\u2019Reilly'
-
-subq = session.query(Publisher).filter(Publisher.name == find_name).subquery()
-q3 = session.query(Book).join(subq, Book.id_publisher == subq.c.id)
-q3s = q3.subquery()
-q2 = session.query(Stock).join(q3s, Stock.id_book == q3s.c.id)
-q2s = q2.subquery()
-q1 = session.query(Shop).join(q2s, Shop.id == q2s.c.id_shop)
-q = session.query(Sale).join(q2s, Sale.id_stock == q2s.c.id)
-
-max_name = max(len(s.title) for s in q3.all())
-max_shop = max(len(sh.name) for sh in q1.all())
-max_price = max(len(str(sal.price)) for sal in q.all())
-
-for s in q3.all():
-    for st in q2.all():
-        for sh in q1.all():
-            for sal in q.all():
-                if sal.id_stock == st.id and st.id_shop == sh.id and st.id_book == s.id:
-                    print(f"{s.title}{(max_name - len(s.title)) * ' '} | "
-                          f"{sh.name}{(max_shop - len(sh.name)) * ' '} | "
-                          f"{sal.price}{(max_price - len(str(sal.price))) * ' '} | "
-                          f"{str(sal.date_sale)[:10]}")
-
-session.close()
+if __name__ == '__main__':
+    DSN = "postgresql://postgres:12345@localhost:5432/neo_bd_02"
+    engine = sqlalchemy.create_engine(DSN)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    create_tables(engine)
+    load_json()
+    find_name = input("Введите автора или его id: ")
+    getshops(find_name)
+    session.close()
